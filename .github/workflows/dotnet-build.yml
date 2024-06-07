@@ -1,0 +1,40 @@
+name: .NET CI/CD Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  build_and_test:
+    name: Build and Test on Push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Run Tests
+        run: dotnet test --no-build --verbosity normal
+
+  scheduled_task:
+    name: Run Scheduled Task
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
