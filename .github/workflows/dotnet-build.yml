@@ -6,7 +6,7 @@ on:
       - main
 
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 0 * * *' # Executa uma vez ao dia à meia-noite (UTC)
 
 jobs:
   build_and_test:
@@ -23,13 +23,13 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Restore Dependencies
-        run: dotnet restore
+        run: dotnet restore **/*.csproj
 
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build **/*.csproj --no-restore
 
       - name: Run Tests
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test **/*.csproj --no-build --verbosity normal
 
   scheduled_task:
     name: Run Scheduled Task
@@ -38,3 +38,30 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore **/*.csproj
+
+      - name: Build
+        run: dotnet build **/*.csproj --no-restore
+
+      - name: Execute Custom Backup Script
+        run: |
+          echo "This is a scheduled backup job."
+          # Script de backup diário
+          diretorio_origem="src/github4women"
+          diretorio_destino="backups"
+          nome_backup="backup_$(date +%Y-%m-%d_%H-%M-%S).tar.gz"
+          mkdir -p "${diretorio_destino}"
+          tar -czvf "${diretorio_destino}/${nome_backup}" "${diretorio_origem}"
+          if [ $? -eq 0 ]; then
+            echo "Backup criado com sucesso em ${diretorio_destino}/${nome_backup}"
+          else
+            echo "Erro ao criar backup"
+            exit 1
+          fi
